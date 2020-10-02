@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Compressors
 {
-    public class Compression : IFixedSizeText
+    public class Compression : IFixedSizeText, IComparable
     {
         public string OriginalName { get; set; }
         public string CompressedName { get; set; }
@@ -14,6 +14,11 @@ namespace Compressors
         public double ReductionPercentage { get; set; }
 
         public int TextLength => ToFixedString().Length;
+
+        public int CompareTo(object obj)
+        {
+            throw new NotImplementedException();
+        }
 
         public IFixedSizeText CreateFromFixedText(string text)
         {
