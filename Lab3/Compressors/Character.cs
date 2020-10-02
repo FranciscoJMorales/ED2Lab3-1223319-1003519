@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Compressors
 {
-    class Character : IComparable
+    class Character
     {
         public char Letter { get; set; }
         public int Count { get; set; }
@@ -19,11 +19,6 @@ namespace Compressors
         public Character(int weight)
         {
             Count = weight;
-        }
-
-        public int CompareTo(object obj)
-        {
-            return this.Count.CompareTo(((Character)obj).Count);
         }
     }
 }

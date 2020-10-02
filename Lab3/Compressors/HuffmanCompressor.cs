@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using Generics;
 
 namespace Compressors
 {
@@ -69,20 +68,21 @@ namespace Compressors
                 else
                     list.Add(text[i], new Character(text[i]));
             }
-            var codes = new ColaPrioridad<Nodo<Character>>();
+            var codes = new List<Node>();
             foreach (var item in list)
-                codes.Add(new Nodo<Character>(item.Value));
+                codes.Add(new Node(item.Value));
+            codes.Sort();
             while (codes.Count > 1)
             {
-                var aux = new Nodo<Character>(new Character(codes.Get().Valor.Count)) { Derecha = codes.Get() };
-                codes.Remove().Padre = aux;
-                codes.Get().Padre = aux;
-                aux.Izquierda = codes.Get();
-                aux.Valor.Count += codes.Remove().Valor.Count;
-                codes.Add(aux);
+                codes[0].Father = new Node(new Character(codes[0].Value.Count + codes[1].Value.Count)) { Left = codes[1], Right = codes[0] };
+                codes[1].Father = codes[0].Father;
+                codes.Add(codes[0].Father);
+                codes.RemoveAt(0);
+                codes.RemoveAt(0);
+                codes.Sort();
             }
-            originalLenght = codes.Get().Valor.Count;
-            AssignCode(codes.Get(), "");
+            originalLenght = codes[0].Value.Count;
+            AssignCode(codes[0], "");
             return list;
         }
 
@@ -98,13 +98,13 @@ namespace Compressors
             return Convert.ToChar(value);
         }
 
-        private void AssignCode(Nodo<Character> pos, string code)
+        private void AssignCode(Node pos, string code)
         {
-            pos.Valor.Code = code;
-            if (pos.Izquierda != null)
-                AssignCode(pos.Izquierda, code + "0");
-            if (pos.Derecha != null)
-                AssignCode(pos.Derecha, code + "1");
+            pos.Value.Code = code;
+            if (pos.Left != null)
+                AssignCode(pos.Left, code + "0");
+            if (pos.Right != null)
+                AssignCode(pos.Right, code + "1");
         }
 
         public void Decompress(string text, string currentName)
