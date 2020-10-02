@@ -16,7 +16,7 @@ namespace Compressors
             Path = path;
         }
 
-        public void Compress(string text, string currentName, string newName)
+        public string ShowCompress(string text)
         {
             var codes = GenerateCode(text);
             string huffman = "";
@@ -55,7 +55,28 @@ namespace Compressors
                 }
                 metadata += count;
             }
-            final = metadata + final;
+            return metadata + final;
+        }
+
+        public string Compress(string text, string currentName, string newName)
+        {
+            string huffman = ShowCompress(text);
+            string path = Path + newName + ".huff";
+            var file = new FileStream(path, FileMode.OpenOrCreate);
+            using StreamWriter writer = new StreamWriter(file, Encoding.ASCII);
+            writer.Write(huffman);
+            file.Close();
+            writer.Close();
+            var comp = new Compression { OriginalName = currentName, CompressedName = newName + ".huff", CompressedRoute = path };
+            comp.CompressionRatio = Math.Round(Convert.ToDouble(huffman.Length) / Convert.ToDouble(text), 4);
+            comp.CompressionFactor = Math.Round(Convert.ToDouble(text) / Convert.ToDouble(huffman.Length), 4);
+            comp.ReductionPercentage = Math.Round(100 * (Convert.ToDouble(text) - Convert.ToDouble(huffman)) / Convert.ToDouble(text), 4);
+            file = new FileStream(path + "//Compressions", FileMode.OpenOrCreate);
+            using StreamWriter writer1 = new StreamWriter(file, Encoding.ASCII);
+            writer1.Write(comp.ToFixedString());
+            file.Close();
+            writer1.Close();
+            return path;
         }
 
         private Dictionary<char, Character> GenerateCode(string text)

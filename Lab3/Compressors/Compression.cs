@@ -36,7 +36,7 @@ namespace Compressors
                 text = text.Remove(0, 10);
                 item.CompressionFactor = int.Parse(text.Substring(0, 9));
                 text = text.Remove(0, 10);
-                item.ReductionPercentage = int.Parse(text.Substring(0, 9));
+                item.ReductionPercentage = int.Parse(text);
                 return item;
             }
             else
@@ -47,20 +47,20 @@ namespace Compressors
         {
             string text = "";
             if (OriginalName != null)
-                text += string.Format("{0, -50}", OriginalName) + ",";
+                text += string.Format("{0, -50}", OriginalName) + "|";
             else
-                text += new string(' ', 50) + ",";
+                text += new string(' ', 50) + "|";
             if (CompressedName != null)
-                text += string.Format("{0, -50}", CompressedName) + ",";
+                text += string.Format("{0, -50}", CompressedName) + "|";
             else
-                text += new string(' ', 50) + ",";
+                text += new string(' ', 50) + "|";
             if (CompressedRoute != null)
-                text += string.Format("{0, -100}", CompressedRoute) + ",";
+                text += string.Format("{0, -100}", CompressedRoute) + "|";
             else
-                text += new string(' ', 11) + ",";
-            text += CompressionRatio.ToString("0000.0000") + ",";
-            text += CompressionFactor.ToString("0000.0000") + ",";
-            text += ReductionPercentage.ToString("0000.0000");
+                text += new string(' ', 11) + "|";
+            text += CompressionRatio.ToString("0000.0000") + "|";
+            text += CompressionFactor.ToString("0000.0000") + "|";
+            text += ReductionPercentage.ToString("00.0000");
             return text;
         }
     }
