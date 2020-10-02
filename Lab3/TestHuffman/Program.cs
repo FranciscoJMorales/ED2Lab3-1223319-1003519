@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Compressors;
+using System;
 
 namespace TestHuffman
 {
@@ -6,7 +7,11 @@ namespace TestHuffman
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
+            Console.WriteLine("Ingrese el texto para codificar");
+            string text = Console.ReadLine();
+            var huffman = new HuffmanCompressor("..//..//..");
+            huffman.Compress(text, "a", "b");
+            Console.ReadLine();
         }
     }
 }

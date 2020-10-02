@@ -9,6 +9,7 @@ namespace Compressors
     public class HuffmanCompressor : ICompressor
     {
         private readonly string Path;
+        private int originalLenght;
 
         public HuffmanCompressor(string path)
         {
@@ -18,6 +19,43 @@ namespace Compressors
         public void Compress(string text, string currentName, string newName)
         {
             var codes = GenerateCode(text);
+            string huffman = "";
+            for (int i = 0; i < text.Length; i++)
+                huffman += codes[text[i]].Code;
+            while (huffman.Length % 8 != 0)
+                huffman += "0";
+            string final = "";
+            while (huffman.Length > 0)
+            {
+                final += ConvertToChar(huffman.Substring(0, 8));
+                huffman = huffman.Remove(0, 8);
+            }
+            string metadata = Convert.ToString(Convert.ToChar(codes.Count));
+            int max = 0;
+            foreach (var item in codes)
+            {
+                if (item.Value.Count > max)
+                    max = item.Value.Count;
+            }
+            int space = 0;
+            while (max > 0)
+            {
+                space++;
+                max /= 256;
+            }
+            metadata += Convert.ToChar(space);
+            foreach (var item in codes)
+            {
+                metadata += item.Value.Letter;
+                string count = "";
+                for (int i = 0; i < space; i++)
+                {
+                    count = Convert.ToChar(item.Value.Count % 256) + count;
+                    item.Value.Count /= 256;
+                }
+                metadata += count;
+            }
+            final = metadata + final;
         }
 
         private Dictionary<char, Character> GenerateCode(string text)
@@ -40,11 +78,24 @@ namespace Compressors
                 codes[1].Father = codes[0].Father;
                 codes.Add(codes[0].Father);
                 codes.RemoveAt(0);
-                codes.RemoveAt(1);
+                codes.RemoveAt(0);
                 codes.Sort();
             }
+            originalLenght = codes[0].Value.Count;
             AssignCode(codes[0], "");
             return list;
+        }
+
+        private char ConvertToChar(string binary)
+        {
+            int value = 0;
+            while (binary.Length > 0)
+            {
+                value *= 2;
+                value += int.Parse(binary.Substring(0, 1));
+                binary = binary.Remove(0, 1);
+            }
+            return Convert.ToChar(value);
         }
 
         private void AssignCode(Node pos, string code)
