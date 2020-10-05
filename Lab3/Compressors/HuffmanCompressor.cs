@@ -9,8 +9,7 @@ namespace Compressors
     public class HuffmanCompressor : ICompressor
     {
         private readonly string Path;
-        private int originalLenght;
-
+        
         public HuffmanCompressor(string path)
         {
             Path = path;
@@ -18,7 +17,15 @@ namespace Compressors
 
         public string ShowCompress(string text)
         {
-            var codes = GenerateCode(text);
+            var codes = new Dictionary<char, Character>();
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (codes.ContainsKey(text[i]))
+                    codes[text[i]].Count++;
+                else
+                    codes.Add(text[i], new Character(text[i]));
+            }
+            GenerateCode(codes);
             string huffman = "";
             for (int i = 0; i < text.Length; i++)
                 huffman += codes[text[i]].Code;
@@ -62,16 +69,14 @@ namespace Compressors
         {
             string huffman = ShowCompress(text);
             string path = Path + newName + ".huff";
-            var file = new FileStream(path, FileMode.OpenOrCreate);
-            using StreamWriter writer = new StreamWriter(file, Encoding.ASCII);
+            using StreamWriter writer = new StreamWriter(path, false);
             writer.Write(huffman);
-            file.Close();
             writer.Close();
-            var comp = new Compression { OriginalName = currentName, CompressedName = newName + ".huff", CompressedRoute = path };
+            var comp = new Compression { OriginalName = currentName, CompressedFileName = newName + ".huff", CompressedFilePath = path };
             comp.CompressionRatio = Math.Round(Convert.ToDouble(huffman.Length) / Convert.ToDouble(text), 4);
             comp.CompressionFactor = Math.Round(Convert.ToDouble(text) / Convert.ToDouble(huffman.Length), 4);
             comp.ReductionPercentage = Math.Round(100 * (Convert.ToDouble(text) - Convert.ToDouble(huffman)) / Convert.ToDouble(text), 4);
-            file = new FileStream(path + "//Compressions", FileMode.OpenOrCreate);
+            var file = new FileStream(path + "//Compressions", FileMode.OpenOrCreate);
             using StreamWriter writer1 = new StreamWriter(file, Encoding.ASCII);
             writer1.Write(comp.ToFixedString());
             file.Close();
@@ -79,16 +84,8 @@ namespace Compressors
             return path;
         }
 
-        private Dictionary<char, Character> GenerateCode(string text)
+        private void GenerateCode(Dictionary<char, Character> list)
         {
-            var list = new Dictionary<char, Character>();
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (list.ContainsKey(text[i]))
-                    list[text[i]].Count++;
-                else
-                    list.Add(text[i], new Character(text[i]));
-            }
             var codes = new List<Node>();
             foreach (var item in list)
                 codes.Add(new Node(item.Value));
@@ -102,9 +99,7 @@ namespace Compressors
                 codes.RemoveAt(0);
                 codes.Sort();
             }
-            originalLenght = codes[0].Value.Count;
             AssignCode(codes[0], "");
-            return list;
         }
 
         private char ConvertToChar(string binary)
@@ -119,6 +114,18 @@ namespace Compressors
             return Convert.ToChar(value);
         }
 
+        private string ConvertToBinary(char value)
+        {
+            int binary = Convert.ToInt32(value);
+            string aux = "";
+            while (binary > 0)
+            {
+                aux = binary % 2 + aux;
+                binary /= 2;
+            }
+            return aux;
+        }
+
         private void AssignCode(Node pos, string code)
         {
             pos.Value.Code = code;
@@ -130,7 +137,42 @@ namespace Compressors
 
         public void Decompress(string text, string currentName)
         {
-            throw new NotImplementedException();
+            var letters = Convert.ToInt32(text[0]);
+            var length = Convert.ToInt32(text[1]);
+            text = text.Remove(0, 2);
+            var codes = new Dictionary<char, Character>();
+            for (int i = 0; i < letters; i++)
+            {
+                var aux = new Character(text[0]);
+                aux.Count = 0;
+                for (int j = 1; j <= length; j++)
+                {
+                    aux.Count *= 256;
+                    aux.Count += Convert.ToInt32(text[j]);
+                }
+                codes.Add(aux.Letter, aux);
+                text = text.Remove(0, length + 1);
+            }
+            GenerateCode(codes);
+            var coding = new Dictionary<string, char>();
+            length = 0;
+            foreach (var item in codes)
+            {
+                coding.Add(item.Value.Code, item.Key);
+                length += item.Value.Count;
+            }
+            string binary = "";
+            for (int i = 0; i < text.Length; i++)
+                binary += ConvertToBinary(text[i]);
+            string final = "";
+            for (int i = 0; i < length; i++)
+            {
+                int j = 0;
+                while (!coding.ContainsKey(binary.Substring(0, j)))
+                    j++;
+                final += coding[binary.Substring(0, j)];
+                binary = binary.Remove(0, j);
+            }
         }
 
         public List<Compression> GetCompressions()

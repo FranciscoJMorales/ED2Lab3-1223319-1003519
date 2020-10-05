@@ -7,8 +7,8 @@ namespace Compressors
     public class Compression : IFixedSizeText
     {
         public string OriginalName { get; set; }
-        public string CompressedName { get; set; }
-        public string CompressedRoute { get; set; }
+        public string CompressedFileName { get; set; }
+        public string CompressedFilePath { get; set; }
         public double CompressionRatio { get; set; }
         public double CompressionFactor { get; set; }
         public double ReductionPercentage { get; set; }
@@ -24,14 +24,14 @@ namespace Compressors
                 text = text.Remove(0, 51);
                 if (item.OriginalName == "")
                     item.OriginalName = null;
-                item.CompressedName = text.Substring(0, 50).Trim();
+                item.CompressedFileName = text.Substring(0, 50).Trim();
                 text = text.Remove(0, 51);
-                if (item.CompressedName == "")
-                    item.CompressedName = null;
-                item.CompressedRoute = text.Substring(0, 100).Trim();
+                if (item.CompressedFileName == "")
+                    item.CompressedFileName = null;
+                item.CompressedFilePath = text.Substring(0, 100).Trim();
                 text = text.Remove(0, 101);
-                if (item.CompressedRoute == "")
-                    item.CompressedRoute = null;
+                if (item.CompressedFilePath == "")
+                    item.CompressedFilePath = null;
                 item.CompressionRatio = int.Parse(text.Substring(0, 9));
                 text = text.Remove(0, 10);
                 item.CompressionFactor = int.Parse(text.Substring(0, 9));
@@ -50,12 +50,12 @@ namespace Compressors
                 text += string.Format("{0, -50}", OriginalName) + "|";
             else
                 text += new string(' ', 50) + "|";
-            if (CompressedName != null)
-                text += string.Format("{0, -50}", CompressedName) + "|";
+            if (CompressedFileName != null)
+                text += string.Format("{0, -50}", CompressedFileName) + "|";
             else
                 text += new string(' ', 50) + "|";
-            if (CompressedRoute != null)
-                text += string.Format("{0, -100}", CompressedRoute) + "|";
+            if (CompressedFilePath != null)
+                text += string.Format("{0, -100}", CompressedFilePath) + "|";
             else
                 text += new string(' ', 11) + "|";
             text += CompressionRatio.ToString("0000.0000") + "|";
