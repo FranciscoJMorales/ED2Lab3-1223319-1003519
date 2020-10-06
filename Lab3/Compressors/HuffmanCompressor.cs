@@ -67,20 +67,18 @@ namespace Compressors
 
         public string Compress(string text, string currentName, string newName)
         {
-            string huffman = ShowCompress(text);
-            string path = Path + newName + ".huff";
+            string huffman = Convert.ToChar(currentName.Length) + currentName + ShowCompress(text);
+            string path = Path + "\\" + newName + ".huff";
             using StreamWriter writer = new StreamWriter(path, false);
             writer.Write(huffman);
             writer.Close();
             var comp = new Compression { OriginalName = currentName, CompressedFileName = newName + ".huff", CompressedFilePath = path };
-            comp.CompressionRatio = Math.Round(Convert.ToDouble(huffman.Length) / Convert.ToDouble(text), 4);
-            comp.CompressionFactor = Math.Round(Convert.ToDouble(text) / Convert.ToDouble(huffman.Length), 4);
-            comp.ReductionPercentage = Math.Round(100 * (Convert.ToDouble(text) - Convert.ToDouble(huffman)) / Convert.ToDouble(text), 4);
-            var file = new FileStream(path + "//Compressions", FileMode.OpenOrCreate);
+            comp.CompressionRatio = Math.Round(Convert.ToDouble(huffman.Length) / Convert.ToDouble(text.Length), 4);
+            comp.CompressionFactor = Math.Round(Convert.ToDouble(text.Length) / Convert.ToDouble(huffman.Length), 4);
+            comp.ReductionPercentage = Math.Round(100 * (Convert.ToDouble(text.Length) - Convert.ToDouble(huffman.Length)) / Convert.ToDouble(text.Length), 4);
+            var file = new FileStream(Path + "\\Compressions.txt", FileMode.OpenOrCreate);
             using StreamWriter writer1 = new StreamWriter(file, Encoding.ASCII);
-            writer1.Write(comp.ToFixedString());
-            file.Close();
-            writer1.Close();
+            writer1.WriteLine(comp.ToFixedString());
             return path;
         }
 
@@ -118,7 +116,7 @@ namespace Compressors
         {
             int binary = Convert.ToInt32(value);
             string aux = "";
-            while (binary > 0)
+            for (int i = 0; i < 8; i++)
             {
                 aux = binary % 2 + aux;
                 binary /= 2;
@@ -135,8 +133,11 @@ namespace Compressors
                 AssignCode(pos.Right, code + "1");
         }
 
-        public void Decompress(string text, string currentName)
+        public string Decompress(string text)
         {
+            int titleLength = Convert.ToInt32(text[0]);
+            string title = text.Substring(1, titleLength);
+            text = text.Remove(0, titleLength + 1);
             var letters = Convert.ToInt32(text[0]);
             var length = Convert.ToInt32(text[1]);
             text = text.Remove(0, 2);
@@ -173,11 +174,15 @@ namespace Compressors
                 final += coding[binary.Substring(0, j)];
                 binary = binary.Remove(0, j);
             }
+            string path = Path + "\\" + title;
+            using StreamWriter writer = new StreamWriter(path, false);
+            writer.Write(final);
+            return path;
         }
 
         public List<Compression> GetCompressions()
         {
-            var file = new FileStream(Path + "//Compressions", FileMode.OpenOrCreate);
+            var file = new FileStream(Path + "\\Compressions.txt", FileMode.OpenOrCreate);
             using StreamReader reader = new StreamReader(file, Encoding.ASCII);
             List<Compression> compressions = new List<Compression>();
             Compression aux = new Compression();

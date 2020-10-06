@@ -1,0 +1,1 @@
+cuento.txt                                        |pruebaCuento.huff                                 |C:\Users\Home\source\repos\ED2Lab3-1223319-1003519\Lab3\api\pruebaCuento.huff                       |0000.5627|0001.7770|43.7269

@@ -8,7 +8,7 @@ namespace Compressors
     {
         public abstract string ShowCompress(string text);
         public abstract string Compress(string text, string currentName, string newName);
-        public abstract void Decompress(string text, string currentName);
+        public abstract string Decompress(string text);
         public abstract List<Compression> GetCompressions();
     }
 }

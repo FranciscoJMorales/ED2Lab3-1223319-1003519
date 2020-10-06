@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Compressors;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -15,7 +16,7 @@ namespace api.Controllers
     [ApiController]
     public class CompressorController : ControllerBase
     {
-        IWebHostEnvironment env;
+        readonly IWebHostEnvironment env;
 
         public CompressorController(IWebHostEnvironment _env)
         {
@@ -23,15 +24,42 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public IActionResult Create([FromForm] IFormFile file)
+        [Route("/api/compress/{name}")]
+        public IActionResult Compress([FromForm] IFormFile file, string name)
         {
             try
             {
                 using var content = new MemoryStream();
                 file.CopyToAsync(content);
-                var text = Encoding.ASCII.GetString(content.ToArray());
-                var deg = JsonSerializer.Deserialize<int>(text);
-                return Ok();
+                content.Position = 0;   
+                using var reader = new StreamReader(content);
+                var text = reader.ReadToEnd();
+                var compressor = new HuffmanCompressor(env.ContentRootPath);
+                string path = compressor.Compress(text, file.FileName, name);
+                var fileStream = new FileStream(path, FileMode.OpenOrCreate);
+                return File(fileStream, "text/plain");
+            }
+            catch
+            {
+                return StatusCode(500);
+            }
+        }
+
+        [HttpPost]
+        [Route("/api/decompress")]
+        public IActionResult Decompress([FromForm] IFormFile file)
+        {
+            try
+            {
+                using var content = new MemoryStream();
+                file.CopyToAsync(content);
+                content.Position = 0;
+                using var reader = new StreamReader(content);
+                var text = reader.ReadToEnd();
+                var compressor = new HuffmanCompressor(env.ContentRootPath);
+                string path = compressor.Decompress(text);
+                var fileStream = new FileStream(path, FileMode.OpenOrCreate);
+                return File(fileStream, "text/plain");
             }
             catch
             {
