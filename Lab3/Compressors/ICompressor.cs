@@ -7,7 +7,7 @@ namespace Compressors
     public interface ICompressor
     {
         public abstract string ShowCompress(string text);
-        public abstract string Compress(string text, string currentName, string newName);
+        public abstract string Compress(byte[] array, string currentName, string newName);
         public abstract string Decompress(string text);
         public abstract List<Compression> GetCompressions();
     }

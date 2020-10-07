@@ -23,19 +23,44 @@ namespace api.Controllers
             env = _env;
         }
 
+        [HttpGet]
+        public IEnumerable<Compression> Get()
+        {
+            return GetCompressions();
+        }
+
         [HttpPost]
         [Route("/api/compress/{name}")]
         public IActionResult Compress([FromForm] IFormFile file, string name)
         {
             try
             {
-                using var content = new MemoryStream();
-                file.CopyToAsync(content);
-                content.Position = 0;   
-                using var reader = new StreamReader(content);
-                var text = reader.ReadToEnd();
+                string path = env.ContentRootPath + "\\" + file.FileName;
+                using var saver = new FileStream(path, FileMode.Create);
+                file.CopyToAsync(saver);
+                saver.Close();
+                using var fileWritten = new FileStream(path, FileMode.OpenOrCreate);
+                using var reader = new BinaryReader(fileWritten);
+                byte[] buffer = new byte[0];
+                while (fileWritten.Position < fileWritten.Length)
+                {
+                    int index = buffer.Length;
+                    Array.Resize<byte>(ref buffer, index + 100000);
+                    byte[] aux = reader.ReadBytes(100000);
+                    aux.CopyTo(buffer, index);
+                }
+                reader.Close();
+                fileWritten.Close();
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    if (buffer[i] == 0)
+                    {
+                        Array.Resize<byte>(ref buffer, i);
+                        break;
+                    }
+                }
                 var compressor = new HuffmanCompressor(env.ContentRootPath);
-                string path = compressor.Compress(text, file.FileName, name);
+                path = compressor.Compress(buffer, file.FileName, name);
                 var fileStream = new FileStream(path, FileMode.OpenOrCreate);
                 return File(fileStream, "text/plain");
             }
@@ -65,6 +90,18 @@ namespace api.Controllers
             {
                 return StatusCode(500);
             }
+        }
+
+        [HttpGet]
+        [Route("/api/compressions")]
+        public IEnumerable<Compression> GetCompressions()
+        {
+            var huffman = new HuffmanCompressor(env.ContentRootPath);
+            var list = huffman.GetCompressions();
+            if (list.Count > 0)
+                return list;
+            else
+                return null;
         }
     }
 }

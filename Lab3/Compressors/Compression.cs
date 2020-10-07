@@ -32,11 +32,11 @@ namespace Compressors
                 text = text.Remove(0, 101);
                 if (item.CompressedFilePath == "")
                     item.CompressedFilePath = null;
-                item.CompressionRatio = int.Parse(text.Substring(0, 9));
+                item.CompressionRatio = double.Parse(text.Substring(0, 9));
                 text = text.Remove(0, 10);
-                item.CompressionFactor = int.Parse(text.Substring(0, 9));
+                item.CompressionFactor = double.Parse(text.Substring(0, 9));
                 text = text.Remove(0, 10);
-                item.ReductionPercentage = int.Parse(text);
+                item.ReductionPercentage = double.Parse(text);
                 return item;
             }
             else

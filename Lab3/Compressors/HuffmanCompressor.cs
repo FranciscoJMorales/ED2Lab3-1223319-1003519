@@ -65,8 +65,9 @@ namespace Compressors
             return metadata + final;
         }
 
-        public string Compress(string text, string currentName, string newName)
+        public string Compress(byte[] array, string currentName, string newName)
         {
+            string text = ConvertToString(array);
             string huffman = Convert.ToChar(currentName.Length) + currentName + ShowCompress(text);
             string path = Path + "\\" + newName + ".huff";
             using StreamWriter writer = new StreamWriter(path, false);
@@ -76,8 +77,7 @@ namespace Compressors
             comp.CompressionRatio = Math.Round(Convert.ToDouble(huffman.Length) / Convert.ToDouble(text.Length), 4);
             comp.CompressionFactor = Math.Round(Convert.ToDouble(text.Length) / Convert.ToDouble(huffman.Length), 4);
             comp.ReductionPercentage = Math.Round(100 * (Convert.ToDouble(text.Length) - Convert.ToDouble(huffman.Length)) / Convert.ToDouble(text.Length), 4);
-            var file = new FileStream(Path + "\\Compressions.txt", FileMode.OpenOrCreate);
-            using StreamWriter writer1 = new StreamWriter(file, Encoding.ASCII);
+            using StreamWriter writer1 = new StreamWriter(Path + "\\Compressions.txt", true);
             writer1.WriteLine(comp.ToFixedString());
             return path;
         }
@@ -175,8 +175,8 @@ namespace Compressors
                 binary = binary.Remove(0, j);
             }
             string path = Path + "\\" + title;
-            using StreamWriter writer = new StreamWriter(path, false);
-            writer.Write(final);
+            using var file = new FileStream(path, FileMode.Create);
+            file.Write(ConvertToByteArray(final), 0, final.Length);
             return path;
         }
 
@@ -192,6 +192,22 @@ namespace Compressors
                 return compressions;
             else
                 return null;
+        }
+
+        private string ConvertToString(byte[] array)
+        {
+            string text = "";
+            foreach (var item in array)
+                text += Convert.ToString(Convert.ToChar(item));
+            return text;
+        }
+
+        private byte[] ConvertToByteArray(string text)
+        {
+            byte[] array = new byte[text.Length];
+            for (int i = 0; i < text.Length; i++)
+                array[i] = Convert.ToByte(text[i]);
+            return array;
         }
     }
 }
