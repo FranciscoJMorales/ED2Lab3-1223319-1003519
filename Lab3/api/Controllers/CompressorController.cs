@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -35,6 +36,11 @@ namespace api.Controllers
         {
             try
             {
+                //evita que se manden archivos vacios
+                if (file == null)
+                    return StatusCode(500);
+
+
                 string path = env.ContentRootPath + "\\" + file.FileName;
                 using var saver = new FileStream(path, FileMode.Create);
                 file.CopyToAsync(saver);
@@ -59,10 +65,14 @@ namespace api.Controllers
                         break;
                     }
                 }
-                var compressor = new HuffmanCompressor(env.ContentRootPath);
-                path = compressor.Compress(buffer, file.FileName, name);
-                var fileStream = new FileStream(path, FileMode.OpenOrCreate);
-                return File(fileStream, "text/plain");
+                if(buffer.Length > 0)
+                {
+                    var compressor = new HuffmanCompressor(env.ContentRootPath);
+                    path = compressor.Compress(buffer, file.FileName, name);
+                    var fileStream = new FileStream(path, FileMode.OpenOrCreate);
+                    return File(fileStream, "text/plain");
+                }
+                return StatusCode(500);
             }
             catch
             {
@@ -98,10 +108,9 @@ namespace api.Controllers
         {
             var huffman = new HuffmanCompressor(env.ContentRootPath);
             var list = huffman.GetCompressions();
-            if (list.Count > 0)
+            
                 return list;
-            else
-                return null;
+            
         }
     }
 }
