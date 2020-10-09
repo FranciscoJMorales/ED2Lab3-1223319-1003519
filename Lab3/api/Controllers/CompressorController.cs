@@ -37,7 +37,7 @@ namespace api.Controllers
             {
                 string path = env.ContentRootPath + "\\" + file.FileName;
                 using var saver = new FileStream(path, FileMode.Create);
-                file.CopyToAsync(saver);
+                file.CopyTo(saver);
                 saver.Close();
                 using var fileWritten = new FileStream(path, FileMode.OpenOrCreate);
                 using var reader = new BinaryReader(fileWritten);
@@ -59,10 +59,15 @@ namespace api.Controllers
                         break;
                     }
                 }
-                var compressor = new HuffmanCompressor(env.ContentRootPath);
-                path = compressor.Compress(buffer, file.FileName, name);
-                var fileStream = new FileStream(path, FileMode.OpenOrCreate);
-                return File(fileStream, "text/plain");
+                if (buffer.Length > 0)
+                {
+                    var compressor = new HuffmanCompressor(env.ContentRootPath);
+                    path = compressor.Compress(buffer, file.FileName, name);
+                    var fileStream = new FileStream(path, FileMode.OpenOrCreate);
+                    return File(fileStream, "text/plain");
+                }
+                else
+                    return StatusCode(500, "El archivo está vacío");
             }
             catch
             {
@@ -76,13 +81,14 @@ namespace api.Controllers
         {
             try
             {
-                using var content = new MemoryStream();
-                file.CopyToAsync(content);
-                content.Position = 0;
-                using var reader = new StreamReader(content);
+                string path = env.ContentRootPath + "\\" + file.FileName;
+                using var saver = new FileStream(path, FileMode.Create);
+                file.CopyTo(saver);
+                using var reader = new StreamReader(saver);
+                saver.Position = 0;
                 var text = reader.ReadToEnd();
                 var compressor = new HuffmanCompressor(env.ContentRootPath);
-                string path = compressor.Decompress(text);
+                path = compressor.Decompress(text);
                 var fileStream = new FileStream(path, FileMode.OpenOrCreate);
                 return File(fileStream, "text/plain");
             }
@@ -97,11 +103,7 @@ namespace api.Controllers
         public IEnumerable<Compression> GetCompressions()
         {
             var huffman = new HuffmanCompressor(env.ContentRootPath);
-            var list = huffman.GetCompressions();
-            if (list.Count > 0)
-                return list;
-            else
-                return null;
+            return huffman.GetCompressions();
         }
     }
 }
